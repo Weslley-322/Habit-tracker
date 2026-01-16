@@ -6,10 +6,11 @@ const getLocalDateKey = (date) => {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 };
 
-const MiniCalendar = ({ habitId, dailyRecords }) => {
+const MiniCalendar = ({ habitId, dailyRecords = [] }) => {
   const today = new Date();
   const year = today.getFullYear();
   const month = today.getMonth();
+  const todayKey = getLocalDateKey(today);
 
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const firstDayOfMonth = new Date(year, month, 1).getDay(); // 0 = Domingo
@@ -20,7 +21,7 @@ const MiniCalendar = ({ habitId, dailyRecords }) => {
   const markedDays = useMemo(() => {
     return new Set(
       dailyRecords
-        .filter(r => r.habitId === habitId)
+        .filter(r => String(r.habitId) === String(habitId))
         .map(r => getLocalDateKey(r.date))
     );
   }, [dailyRecords, habitId]);
@@ -46,24 +47,39 @@ const MiniCalendar = ({ habitId, dailyRecords }) => {
 
       {/* Calendário */}
       <View style={styles.calendar}>
-        {/* Espaços vazios antes do dia 1 */}
+        {/* Espaços vazios */}
         {emptyDays.map((_, index) => (
           <View key={`empty-${index}`} style={styles.dayCell} />
         ))}
 
-        {/* Dias do mês */}
+        {/* Dias */}
         {daysArray.map(day => {
           const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
           const isMarked = markedDays.has(dateKey);
+          const isToday = dateKey === todayKey;
 
           return (
-            <View key={day} style={styles.dayCell}>
-              <Text style={styles.dayNumber}>{day}</Text>
+            <View
+              key={day}
+              style={[
+                styles.dayCell,
+                isToday && styles.todayCell
+              ]}
+            >
+              <Text
+                style={[
+                  styles.dayNumber,
+                  isToday && styles.todayNumber
+                ]}
+              >
+                {day}
+              </Text>
 
               <View
                 style={[
                   styles.statusBox,
-                  isMarked ? styles.statusMarked : styles.statusNotMarked
+                  isMarked ? styles.statusMarked : styles.statusNotMarked,
+                  isToday && styles.todayStatusBox
                 ]}
               >
                 <Text
@@ -164,5 +180,22 @@ const styles = StyleSheet.create({
 
   statusTextNotMarked: {
     color: '#9CA3AF'
-  }
+  },
+
+  todayCell: {
+  backgroundColor: '#EEF2FF',
+  borderRadius: 8,
+  paddingVertical: 4
+},
+
+todayNumber: {
+  fontWeight: '700',
+  color: '#4F46E5'
+},
+
+todayStatusBox: {
+  borderWidth: 1,
+  borderColor: '#4F46E5'
+}
+
 });
